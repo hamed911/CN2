@@ -13,8 +13,12 @@ int process_command(char command[MAX_STR_SIZE], char res[MAX_STR_SIZE], char* di
 
 int main(int argn, char** args)
 {
-	change_ip_seed(0);
+	/*
+	change_ip_seed(1234);
+	int rps = read_ip_seed();
+	*/
 
+	change_ip_seed(0);
 	int port_number = atoi(args[1]);//to be server
 	int port_no;//to be client
 	const int num_of_connection = 5;
@@ -31,9 +35,6 @@ int main(int argn, char** args)
 	//creating socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	printf("s:%d c:%d\n", server_fd, client_fd);
-
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -117,7 +118,6 @@ int main(int argn, char** args)
 					else
 					{
 						write(STDOUTFD, "connecting successful\n", sizeof("connecting successful\n"));
-						printf("injaaaa\n");
 					}
 					//do something
 
@@ -138,9 +138,7 @@ int main(int argn, char** args)
 					//get response from server
 					char res_buff[MAX_STR_SIZE];
 					clear_buff(res_buff, MAX_STR_SIZE);
-					printf("INNNJJJAAA\n");
 					int read_status = read(client_fd, res_buff, MAX_STR_SIZE);
-					printf("INNNJJJAAA\n");
 
 					//show the response to client
 					write(STDOUTFD, res_buff, strlength(res_buff));
@@ -176,7 +174,6 @@ int main(int argn, char** args)
 					clear_buff(buff_read, MAX_STR_SIZE);
 					clear_buff(response_buff, MAX_STR_SIZE);
 					strcpy(response_buff, "OKKe");
-
 					n = read(it_fd, buff_read, MAX_STR_SIZE-1);
 
 					print(buff_read);

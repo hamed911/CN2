@@ -15,6 +15,13 @@ int main(int argn, char** args)
 {
 	int port_number = atoi(args[1]);//to be server
 	int port_no;//to be client
+
+	int parents[MAX_ARRAY_SIZE];
+	int parent_i = 0;
+
+	struct dst_port table[MAX_ARRAY_SIZE];
+	int table_i = 0;
+
 	const int num_of_connection = 5;
 	char *directory_name = "DB";
 	// make directories
@@ -29,9 +36,6 @@ int main(int argn, char** args)
 	//creating socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	printf("s:%d c:%d\n", server_fd, client_fd);
-
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -72,7 +76,6 @@ int main(int argn, char** args)
 	tv.tv_usec = 0;
 
 	unsigned int size_of_client_addr = sizeof(client_addr);
-
 	int status;
 
 	while(1)
@@ -104,6 +107,8 @@ int main(int argn, char** args)
 					switch_addr.sin_family = AF_INET;
 					switch_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 					port_no = atoi(input_tokens[2]);
+					parents[parent_i] = port_no;
+					parent_i++;
 					switch_addr.sin_port = htons(port_no);
 					int status1 = connect(client_fd, (struct sockaddr *)&switch_addr, sizeof(switch_addr));
 					if(status1 < 0)
@@ -115,7 +120,6 @@ int main(int argn, char** args)
 					else
 					{
 						write(STDOUTFD, "connecting successful\n", sizeof("connecting successful\n"));
-						printf("injaaaa\n");
 					}
 					//do something
 
@@ -136,9 +140,7 @@ int main(int argn, char** args)
 					//get response from server
 					char res_buff[MAX_STR_SIZE];
 					clear_buff(res_buff, MAX_STR_SIZE);
-					printf("INNNJJJAAA\n");
 					int read_status = read(client_fd, res_buff, MAX_STR_SIZE);
-					printf("INNNJJJAAA\n");
 
 					//show the response to client
 					write(STDOUTFD, res_buff, strlength(res_buff));
@@ -177,6 +179,7 @@ int main(int argn, char** args)
 
 					n = read(it_fd, buff_read, MAX_STR_SIZE-1);
 
+					printf("dastoore khande shode az tarafe client:\n\n");
 					print(buff_read);
 
 					if(n == 0)
@@ -193,7 +196,7 @@ int main(int argn, char** args)
 					//after reading successfully
 					else
 					{
-						if(mystrcmp(buff_read, "DC") < 0)
+						if(mystrcmp(buff_read, "DC") < 0 && mystrcmp(buff_read, "get_ip") < 0)
 						{
 							if(process_command(buff_read, response_buff, directory_name) < 0)
 							{
@@ -205,6 +208,17 @@ int main(int argn, char** args)
 
 							int s = write(it_fd, response_buff, strlength(response_buff));
 							if(s < 0) write(STDOUTFD, "Error on writing\n", sizeof("Error on writing\n"));
+						}
+						else if(mystrcmp(buff_read, "get_ip") == 0)
+						{
+							int rps = read_ip_seed();
+							change_ip_seed(++rps);
+							printf("%d\n", rps);
+							char res[20];
+							clear_buff(res, 20);
+							int_to_str(rps, res, 10);
+							
+							write(it_fd, res,strlen(res));
 						}
 						else if(mystrcmp(buff_read, "DC") == 0)
 						{

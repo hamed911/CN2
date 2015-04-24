@@ -1,17 +1,71 @@
 #include "utilities.h"
 
+char* crc(char* t){
+	return "$$$$$$";
+}
+
+void extend_to(char* c, int to,char* ress)
+{
+	int size = strlen(c);
+	int ex = to - size;
+	
+	int i;
+	for (i=0; i<ex; i++)
+	{
+		strcat(ress, "0");
+	}
+	strcat(ress, c);
+}
+
+void framing(char* type,char* dstAdd,char* srcAdd,char* data,char* sender_port,char* frame){
+	strcat(frame, type);
+	strcat(frame, "&");
+	//dst
+	char ress[MAX_STR_SIZE];
+	clear_buff(ress, MAX_STR_SIZE);
+	extend_to(dstAdd, 16,ress);
+	strcat(frame, ress);
+	strcat(frame,"&");
+	//src
+	clear_buff(ress, MAX_STR_SIZE);
+	extend_to(srcAdd, 16,ress);
+	strcat(frame, ress);
+	strcat(frame, "&$$$$&1024&");
+	//data
+	strcat(frame, data);
+	strcat(frame, "&$$$$$$&");
+	//port
+	strcat(frame, sender_port);
+}
+
 int change_ip_seed(int c)
 {
-	int file_fd = open("./DB/ip_seed.txt", O_APPEND | O_RDWR);
+	int file_fd = open("./DB/ip_seed.txt",O_TRUNC | O_RDWR);
 	//chmod(path_name, S_IRUSR | S_IWUSR );
 	if(file_fd > 0)
 		chmod("./DB/ip_seed.txt", S_IRUSR | S_IWUSR );
 	else
 		write(STDOUTFD, "Error In Opening File to Write!\n", sizeof("Error In Opening File to Write!\n"));
 	char res[20];
+	clear_buff(res, 20);
 	int_to_str(c, res, 10);
-	int w_st = write(file_fd, res, sizeof(res));
+	int w_st = write(file_fd, res, strlen(res));
 	return w_st;
+}
+
+int read_ip_seed()
+{
+	int file_fd = open("./DB/ip_seed.txt",O_RDWR);
+	if(file_fd > 0)
+		chmod("./DB/ip_seed.txt", S_IRUSR | S_IWUSR );
+	else
+		write(STDOUTFD, "Error In Opening File to Write!\n", sizeof("Error In Opening File to Write!\n"));
+	char res[20];
+	
+	int r_st = read(file_fd, res, strlen(res));
+	int v = atoi(res);
+	
+	return v;
 }
 
 int create_directories(char path_name[MAX_STR_SIZE])
@@ -74,7 +128,6 @@ void tokenizer(char str[MAX_STR_SIZE], char delim[MAX_STR_SIZE], int* num_of_tok
 		{
 			if (str[i] == delim[j] || str[i] == '\0' )
 			{
-				printf("jafar\n");
 				cut = 1;
 				break;
 			}

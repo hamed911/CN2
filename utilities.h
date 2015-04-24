@@ -24,8 +24,15 @@ struct linux_dirent {
 	char           d_name[];
 };
 
+struct dst_port {
+	char dst[MAX_STR_SIZE];
+	char port[MAX_STR_SIZE];
+};
 
+
+void framing(char* type,char* dstAdd,char* srcAdd,char* data,char* sender_port,char* frame);
 int change_ip_seed(int c);
+int read_ip_seed();
 int create_directories(char path_name[MAX_STR_SIZE]);
 int strlength(char str[MAX_STR_SIZE]);
 void tokenizer(char str[MAX_STR_SIZE], char delim[MAX_STR_SIZE], int* num_of_tokens, char res[MAX_ARRAY_SIZE][MAX_STR_SIZE]);
