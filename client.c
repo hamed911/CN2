@@ -5,6 +5,11 @@
 
 int main(int argn, char** args){
 
+	printf("foshhhh\n");
+	//printf("%d\n", global_seed_ip);
+	//global_seed_ip ++;
+	//printf("%d\n", global_seed_ip);
+
 	char input_buffer[MAX_STR_SIZE];
 	clear_buff(input_buffer, MAX_STR_SIZE);
 
@@ -19,6 +24,9 @@ int main(int argn, char** args){
 		{
 			int n, m;//return value of read/write calls
 			int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+			printf("socket to connect is: %d\n", fd);
+
 			int port_no = atoi(input_tokens[2]);
 			printf("%d\n",port_no );
 			struct sockaddr_in serv_addr;

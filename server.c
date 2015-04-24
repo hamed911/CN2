@@ -13,7 +13,10 @@ int process_command(char command[MAX_STR_SIZE], char res[MAX_STR_SIZE], char* di
 
 int main(int argn, char** args)
 {
-	int port_number = atoi(args[1]);
+	change_ip_seed(0);
+
+	int port_number = atoi(args[1]);//to be server
+	int port_no;//to be client
 	const int num_of_connection = 5;
 	char *directory_name = "DB";
 	// make directories
@@ -27,6 +30,10 @@ int main(int argn, char** args)
 	write(STDOUTFD, "Directory created\n", sizeof("Directory created\n"));
 	//creating socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	int client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	printf("s:%d c:%d\n", server_fd, client_fd);
+
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -86,13 +93,67 @@ int main(int argn, char** args)
 			{
 				if(it_fd == STDINFD)
 				{
-					char buff_read [MAX_STR_SIZE], response_buff[MAX_STR_SIZE];
+					char buff_read [MAX_STR_SIZE];
 					clear_buff(buff_read, MAX_STR_SIZE);
-					clear_buff(response_buff, MAX_STR_SIZE);
 
 					read(it_fd, buff_read, MAX_STR_SIZE-1);
-					strcpy(response_buff, "ok e");
-					write(STDOUTFD, response_buff, strlength(response_buff));
+
+					int input_tokens_num;
+					char input_tokens[MAX_ARRAY_SIZE][MAX_STR_SIZE];
+					tokenizer(buff_read, " ", &input_tokens_num, input_tokens);
+
+					struct sockaddr_in switch_addr;
+					switch_addr.sin_family = AF_INET;
+					switch_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+					port_no = atoi(input_tokens[2]);
+					switch_addr.sin_port = htons(port_no);
+					int status1 = connect(client_fd, (struct sockaddr *)&switch_addr, sizeof(switch_addr));
+					if(status1 < 0)
+					{
+						write(STDOUTFD,"Error on connecting\n", sizeof("Error on connecting\n"));
+						continue;
+						//exit
+					}
+					else
+					{
+						write(STDOUTFD, "connecting successful\n", sizeof("connecting successful\n"));
+						printf("injaaaa\n");
+					}
+					//do something
+
+					//sending identity to server
+					char iden_buff[MAX_STR_SIZE];
+					clear_buff(iden_buff, MAX_STR_SIZE);
+					strcat(iden_buff, "switch ");
+					strcat(iden_buff, " \0");
+					char request[MAX_STR_SIZE];
+					strcpy(request, iden_buff);
+					strcat(request, buff_read);
+
+					//send command for server
+					int bytes_written = write(client_fd, request, strlength(request));
+					if(bytes_written < 0)
+						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
+
+					//get response from server
+					char res_buff[MAX_STR_SIZE];
+					clear_buff(res_buff, MAX_STR_SIZE);
+					printf("INNNJJJAAA\n");
+					int read_status = read(client_fd, res_buff, MAX_STR_SIZE);
+					printf("INNNJJJAAA\n");
+
+					//show the response to client
+					write(STDOUTFD, res_buff, strlength(res_buff));
+
+					//save result
+
+					
+
+					//Disconnect from parent switch
+					int byts_written = write(client_fd, "DC", strlength("DC"));
+					if(byts_written < 0)
+						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
+					continue;
 				}
 				if(it_fd == server_fd)
 				{	
@@ -104,6 +165,9 @@ int main(int argn, char** args)
 					}
 					else write(STDOUTFD,"accepting successful\n", sizeof("accepting successful\n"));
 					FD_SET(new_sock_fd, &read_fdset);
+
+					printf("accepted fd is: %d\n", new_sock_fd);
+
 				}
 				else
 				{
@@ -111,8 +175,12 @@ int main(int argn, char** args)
 					char buff_read [MAX_STR_SIZE], response_buff[MAX_STR_SIZE];
 					clear_buff(buff_read, MAX_STR_SIZE);
 					clear_buff(response_buff, MAX_STR_SIZE);
+					strcpy(response_buff, "OKKe");
 
 					n = read(it_fd, buff_read, MAX_STR_SIZE-1);
+
+					print(buff_read);
+
 					if(n == 0)
 					{
 						close(it_fd);
@@ -134,6 +202,9 @@ int main(int argn, char** args)
 								int st = write(it_fd, "Invalid command\n", sizeof("Invalid command\n"));
 								if(st < 0) write(STDOUTFD, "Error on writing\n", sizeof("Error on writing\n"));
 							}
+
+							print(response_buff);
+
 							int s = write(it_fd, response_buff, strlength(response_buff));
 							if(s < 0) write(STDOUTFD, "Error on writing\n", sizeof("Error on writing\n"));
 						}

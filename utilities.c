@@ -1,5 +1,19 @@
 #include "utilities.h"
 
+int change_ip_seed(int c)
+{
+	int file_fd = open("./DB/ip_seed.txt", O_APPEND | O_RDWR);
+	//chmod(path_name, S_IRUSR | S_IWUSR );
+	if(file_fd > 0)
+		chmod("./DB/ip_seed.txt", S_IRUSR | S_IWUSR );
+	else
+		write(STDOUTFD, "Error In Opening File to Write!\n", sizeof("Error In Opening File to Write!\n"));
+	char res[20];
+	int_to_str(c, res, 10);
+	int w_st = write(file_fd, res, sizeof(res));
+	return w_st;
+}
+
 int create_directories(char path_name[MAX_STR_SIZE])
 {
 	int mkdir_status = mkdir(path_name, S_IRUSR | S_IWUSR | S_IXUSR | S_IROTH | S_IWOTH | S_IXOTH);

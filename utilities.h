@@ -24,6 +24,8 @@ struct linux_dirent {
 	char           d_name[];
 };
 
+
+int change_ip_seed(int c);
 int create_directories(char path_name[MAX_STR_SIZE]);
 int strlength(char str[MAX_STR_SIZE]);
 void tokenizer(char str[MAX_STR_SIZE], char delim[MAX_STR_SIZE], int* num_of_tokens, char res[MAX_ARRAY_SIZE][MAX_STR_SIZE]);
