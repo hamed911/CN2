@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define STDINFD 0
 #define STDOUTFD 1

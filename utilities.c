@@ -56,16 +56,12 @@ int change_ip_seed(int c)
 
 int read_ip_seed()
 {
-	int file_fd = open("./DB/ip_seed.txt",O_RDWR);
-	if(file_fd > 0)
-		chmod("./DB/ip_seed.txt", S_IRUSR | S_IWUSR );
-	else
-		write(STDOUTFD, "Error In Opening File to Write!\n", sizeof("Error In Opening File to Write!\n"));
-	char res[20];
-	
-	int r_st = read(file_fd, res, strlen(res));
-	int v = atoi(res);
-	close(file_fd);
+	char line [MAX_STR_SIZE];
+	clear_buff(line,MAX_STR_SIZE);
+	FILE* file = fopen("./DB/ip_seed.txt","rt");
+	fgets(line,MAX_STR_SIZE,file);
+	int v = atoi(line);
+	fclose( file);
 	return v;
 }
 
