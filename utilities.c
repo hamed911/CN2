@@ -50,6 +50,7 @@ int change_ip_seed(int c)
 	clear_buff(res, 20);
 	int_to_str(c, res, 10);
 	int w_st = write(file_fd, res, strlen(res));
+	close(file_fd);
 	return w_st;
 }
 
@@ -64,7 +65,7 @@ int read_ip_seed()
 	
 	int r_st = read(file_fd, res, strlen(res));
 	int v = atoi(res);
-	
+	close(file_fd);
 	return v;
 }
 
@@ -158,10 +159,30 @@ int clear_buff(char* c, int size)
 		c[i] = 0;
 	}
 }
+int clear_buff_int(int* c, int size)
+{
+	if (size == 0) size = MAX_STR_SIZE;
+	int i;
+	for(i = 0; i < size; i++)
+	{
+		c[i] = 0;
+	}
+}
 int mystrcmp(char const*p, char const *q)
 {
 	int i = 0;
 	for(i=0; q[i]!='\0'; i++)
+	{
+		if(p[i] != q[i])
+			return -1;
+	}
+	return 0;
+}
+
+int mystrcmp_to(char const*p, char const *q, int to)
+{
+	int i = 0;
+	for(i=0; i<to; i++)
 	{
 		if(p[i] != q[i])
 			return -1;

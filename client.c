@@ -3,30 +3,9 @@
 #include <netinet/in.h>
 #include "utilities.h"
 
-/*void test(){
-	char dst[MAX_STR_SIZE];
-	clear_buff(dst, MAX_STR_SIZE);
-	strcat(dst,"5");
-	char src[MAX_STR_SIZE];
-	clear_buff(src, MAX_STR_SIZE);
-	strcat(src,"2");
-	char data[MAX_STR_SIZE];
-	clear_buff(data, MAX_STR_SIZE);
-	strcat(data,"goore+babat");
-	char port[MAX_STR_SIZE];
-	clear_buff(port, MAX_STR_SIZE);
-	strcat(port,"2001");
-	char frame[MAX_STR_SIZE];
-	clear_buff(frame, MAX_STR_SIZE);
-	framing(dst,src,data,port, frame);
-	printf("test is: %s\n",frame );
-
-}*/
-
 int main(int argn, char** args){
-	// test();return;
 	if(argn!=3){
-		print("use this format: /client username password\n");
+		print("use this format: /Client username password\n");
 		return 0;
 	}
 	int my_ip;
@@ -91,7 +70,7 @@ int main(int argn, char** args){
 			//sending identity to server
 			char iden_buff[MAX_STR_SIZE];
 			clear_buff(iden_buff, MAX_STR_SIZE);
-			strcat(iden_buff, "00");
+			strcat(iden_buff, "00");//00 is for client
 
 			while(1)
 			{
@@ -100,7 +79,7 @@ int main(int argn, char** args){
 				clear_buff(data, MAX_STR_SIZE);
 				int status = read(STDINFD, data, MAX_STR_SIZE);
 				char frame[MAX_STR_SIZE];
-				
+				clear_buff(frame, MAX_STR_SIZE);
 				int tokens_num;
 				char temptkns[MAX_ARRAY_SIZE][MAX_STR_SIZE];
 				tokenizer(data, " \n", &tokens_num, temptkns);

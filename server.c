@@ -13,10 +13,10 @@ int process_command(char command[MAX_STR_SIZE], char res[MAX_STR_SIZE], char* di
 
 int main(int argn, char** args)
 {
-	/*
-	change_ip_seed(1234);
-	int rps = read_ip_seed();
-	*/
+	if(argn!=2){
+		print("use this format: /Server port\n");
+		return 0;
+	}
 
 	change_ip_seed(0);
 	int port_number = atoi(args[1]);//to be server
@@ -119,19 +119,15 @@ int main(int argn, char** args)
 					{
 						write(STDOUTFD, "connecting successful\n", sizeof("connecting successful\n"));
 					}
-					//do something
 
-					//sending identity to server
+					//sending identity to sswitch
 					char iden_buff[MAX_STR_SIZE];
 					clear_buff(iden_buff, MAX_STR_SIZE);
-					strcat(iden_buff, "switch ");
-					strcat(iden_buff, " \0");
-					char request[MAX_STR_SIZE];
-					strcpy(request, iden_buff);
-					strcat(request, buff_read);
+					strcat(iden_buff, "11&");
+					strcat(iden_buff, args[1]);
 
 					//send command for server
-					int bytes_written = write(client_fd, request, strlength(request));
+					int bytes_written = write(client_fd, iden_buff, strlength(iden_buff));
 					if(bytes_written < 0)
 						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
 
@@ -142,10 +138,6 @@ int main(int argn, char** args)
 
 					//show the response to client
 					write(STDOUTFD, res_buff, strlength(res_buff));
-
-					//save result
-
-					
 
 					//Disconnect from parent switch
 					int byts_written = write(client_fd, "DC", strlength("DC"));
@@ -164,7 +156,7 @@ int main(int argn, char** args)
 					else write(STDOUTFD,"accepting successful\n", sizeof("accepting successful\n"));
 					FD_SET(new_sock_fd, &read_fdset);
 
-					printf("accepted fd is: %d\n", new_sock_fd);
+					printf("Accepted fd is: %d\n", new_sock_fd);
 
 				}
 				else
@@ -173,9 +165,11 @@ int main(int argn, char** args)
 					char buff_read [MAX_STR_SIZE], response_buff[MAX_STR_SIZE];
 					clear_buff(buff_read, MAX_STR_SIZE);
 					clear_buff(response_buff, MAX_STR_SIZE);
-					strcpy(response_buff, "OKKe");
+					strcpy(response_buff, "Server mige OKKe");
+
 					n = read(it_fd, buff_read, MAX_STR_SIZE-1);
 
+					printf("\nserver ino khunde\n");
 					print(buff_read);
 
 					if(n == 0)
@@ -188,7 +182,6 @@ int main(int argn, char** args)
 					{
 						write(STDOUTFD, "Error on reading\n", sizeof("Error on reading\n"));
 					}
-
 					//after reading successfully
 					else
 					{
