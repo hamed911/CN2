@@ -120,19 +120,32 @@ int process_command(char command[MAX_STR_SIZE], char res[MAX_STR_SIZE], char* di
 }
 
 
-void test()
+void test(ip_fd table[MAX_ARRAY_SIZE])
 {
-	int rps = read_ip_seed();
-	printf("old ip-seed is: %d\n", rps);
-	change_ip_seed(++rps);
-	printf("new ip-seed is: %d\n", rps);
-	change_ip_seed(++rps);
-	printf("new new ip-seed is: %d\n", rps);
+	strcpy( table[0].ip,"zahra");
+	table[0].fd = 2;
+	strcpy( table[2].ip ,"0111");
+	table[2].fd = 3;
+	show_table_ip_fd(table,3);
+	int index= search_ip_fd(table, "0111");
+	printf("index is: %d\n",index );
+	clear_ip_fd(table);
+	show_table_ip_fd(table,3);
+	insert_ip_fd(table,"021",12);
+	show_table_ip_fd(table,3);
+	insert_ip_fd(table,"00111",2);
+	show_table_ip_fd(table,3);
+	index = search_ip_fd(table,"021");
+	delete_ip_fd(table, index);
+	show_table_ip_fd(table,3);
 }
+
+
 
 int main(int argn, char** args)
 {
-	test(); return 0;
+	ip_fd ip_fd_table[MAX_ARRAY_SIZE];
+	test(ip_fd_table); return 0;
 
 	if(argn!=2){
 		print("use this format: /Switch port\n");

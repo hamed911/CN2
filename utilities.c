@@ -3,6 +3,88 @@
 char* crc(char* t){
 	return "$$$$$$";
 }
+/*
+void show_table_dst_port(dst_port table [MAX_ARRAY_SIZE],int index){
+	int i;
+	for(i=0; i<index; i++)
+		printf("%d - ip is: %s \tfd is:%d\n",i,table[i].ip,table[i].fd );
+}
+
+void clear_dst_port(dst_port table [MAX_ARRAY_SIZE]){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+	{
+		strcpy( table[i].ip,"");
+		table[i].fd=-1;
+		// table[i]=NULL;
+	}
+}
+
+int search_dst_port(dst_port table [MAX_ARRAY_SIZE], char * ip){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+		if(table[i].fd !=-1 && mystrcmp(table[i].ip,ip)==0)
+			return i;
+	return -1;
+}
+
+void delete_dst_port(dst_port table [MAX_ARRAY_SIZE],int index){
+	table[index].fd=-1;
+	clear_buff(table[index].ip,MAX_STR_SIZE);
+}
+
+void insert_dst_port(dst_port table [MAX_ARRAY_SIZE] ,char* ip,int fd){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+	{
+		if(table[i].fd == -1){
+			table[i].fd=fd;
+			strcpy(table[i].ip,ip);
+			break;
+		}
+	}
+}
+*/
+void show_table_ip_fd(ip_fd table [MAX_ARRAY_SIZE],int index){
+	int i;
+	for(i=0; i<index; i++)
+		printf("%d - ip is: %s \tfd is:%d\n",i,table[i].ip,table[i].fd );
+}
+
+void clear_ip_fd(ip_fd table [MAX_ARRAY_SIZE]){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+	{
+		strcpy( table[i].ip,"");
+		table[i].fd=-1;
+		// table[i]=NULL;
+	}
+}
+
+int search_ip_fd( ip_fd table [MAX_ARRAY_SIZE], char * ip){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+		if(table[i].fd !=-1 && mystrcmp(table[i].ip,ip)==0)
+			return i;
+	return -1;
+}
+
+void delete_ip_fd( ip_fd table [MAX_ARRAY_SIZE],int index){
+	table[index].fd=-1;
+	clear_buff(table[index].ip,MAX_STR_SIZE);
+}
+
+void insert_ip_fd( ip_fd table [MAX_ARRAY_SIZE] ,char* ip,int fd){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+	{
+		if(table[i].fd == -1){
+			table[i].fd=fd;
+			strcpy(table[i].ip,ip);
+			break;
+		}
+	}
+}
 
 void extend_to(char* c, int to,char* ress)
 {
@@ -41,7 +123,6 @@ void framing(char* type,char* dstAdd,char* srcAdd,char* data,char* sender_port,c
 int change_ip_seed(int c)
 {
 	int file_fd = open("./DB/ip_seed.txt",O_TRUNC | O_RDWR);
-	//chmod(path_name, S_IRUSR | S_IWUSR );
 	if(file_fd > 0)
 		chmod("./DB/ip_seed.txt", S_IRUSR | S_IWUSR );
 	else

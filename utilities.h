@@ -25,10 +25,15 @@ struct linux_dirent {
 	char           d_name[];
 };
 
-struct dst_port {
+typedef struct ip_fd{
+	char ip[MAX_STR_SIZE];
+	int fd;
+} ip_fd;
+
+typedef struct dst_port {
 	char dst[MAX_STR_SIZE];
 	char port[MAX_STR_SIZE];
-};
+} dst_port;
 
 /* in the maping type-section to nodes:
 // 00 is for client
@@ -37,6 +42,14 @@ struct dst_port {
 // 11 is for server
 */
 
+void insert_dst_port(dst_port table [MAX_ARRAY_SIZE] ,char* ip,int fd);
+void clear_dst_port( dst_port table [MAX_ARRAY_SIZE]);
+int search_dst_port( dst_port table [MAX_ARRAY_SIZE], char * ip);
+void delete_dst_port( dst_port table [MAX_ARRAY_SIZE],int index);
+void insert_ip_fd( ip_fd table [MAX_ARRAY_SIZE] ,char* ip,int fd);
+void clear_ip_fd( ip_fd table [MAX_ARRAY_SIZE]);
+int search_ip_fd( ip_fd table [MAX_ARRAY_SIZE], char * ip);
+void delete_ip_fd( ip_fd table [MAX_ARRAY_SIZE],int index);
 void framing(char* type,char* dstAdd,char* srcAdd,char* data,char* sender_port,char* frame);
 int change_ip_seed(int c);
 int read_ip_seed();
