@@ -78,6 +78,7 @@ int main(int argn, char** args){
 				char data[MAX_STR_SIZE];
 				clear_buff(data, MAX_STR_SIZE);
 				int status = read(STDINFD, data, MAX_STR_SIZE);
+				replace_char(data,'\n','\0');
 				char frame[MAX_STR_SIZE];
 				clear_buff(frame, MAX_STR_SIZE);
 				int tokens_num;
@@ -87,6 +88,28 @@ int main(int argn, char** args){
 				//send command for server
 				if( (mystrcmp(temptkns[0], "DC") < 0) && (mystrcmp(temptkns[0], "Logout") < 0) )
 				{
+					if( strcmp(temptkns[0],"Request")==0 || strcmp(temptkns[0],"Append")==0 || strcmp(temptkns[0],"Send")==0){
+						printf("data befor is: %s\n",data);
+						strcat(data," ");
+						printf("args[1] is:%s\n",args[1] );
+						strcat(data,args[1]);
+						printf("data after is:%s\n",data );
+
+					}
+					if(strcmp(temptkns[0],"Send")==0 && tokens_num==2){
+						if(!file_exist(temptkns[1])){
+							printf("file %s doesn't exist! You should create this file near ./Client 's directory\n", temptkns[1]);
+							continue;
+						}
+						char file_content[MAX_STR_SIZE];
+						clear_buff(file_content,MAX_STR_SIZE);
+						read_entire_file(temptkns[1],file_content);
+						replace_char(file_content,'\n','^');
+						strcat(data," ");
+						strcat(data,file_content);
+
+					}
+
 					framing(iden_buff,"0",resip,data,"cccc",frame);
 
 					int bytes_written = write(fd, frame, strlength(frame));
@@ -97,9 +120,12 @@ int main(int argn, char** args){
 					char res_buff[MAX_STR_SIZE];
 					clear_buff(res_buff, MAX_STR_SIZE);
 					int read_status = read(fd, res_buff, MAX_STR_SIZE);
-
+					int input_tokens_num;
+					char input_tokens[MAX_ARRAY_SIZE][MAX_STR_SIZE];
+					tokenizer(res_buff, "&", &input_tokens_num, input_tokens);
 					//show the response to client
-					write(STDOUTFD, res_buff, strlength(res_buff));
+					write(STDOUTFD, input_tokens[5], strlength(input_tokens[5]));
+		
 				}
 				else if(mystrcmp(temptkns[0], "DC") == 0)
 				{
@@ -125,7 +151,7 @@ int main(int argn, char** args){
 		}
 		else if( (mystrcmp(input_tokens[0], "Connect") < 0) && (mystrcmp(input_tokens[0], "Logout") < 0) )
 		{
-			write(STDOUTFD, "You Should Login First: Login AAA 111\n", sizeof("You Should Login First: Login AAA 111\n"));
+			write(STDOUTFD, "You Should Connect to Switch : Connect Switch 2001\n", sizeof("You Should Connect to Switch : Connect Switch 2001\n"));
 		}
 	}
 	return 0;

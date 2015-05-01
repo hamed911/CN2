@@ -1,0 +1,7 @@
+hamed test.txt Append
+zahra jafar.txt Write
+hamed gheysar.txt Read
+hamed jafar.txt Read
+hamed kaftar.txt Write
+hamed jafar.txt Append
+hamed kaftar.txt Append

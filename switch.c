@@ -145,7 +145,7 @@ void test(ip_fd table[MAX_ARRAY_SIZE])
 int main(int argn, char** args)
 {
 	ip_fd ip_fd_table[MAX_ARRAY_SIZE];
-	test(ip_fd_table); return 0;
+	// test(ip_fd_table); return 0;
 
 	if(argn!=2){
 		print("use this format: /Switch port\n");
@@ -169,13 +169,10 @@ int main(int argn, char** args)
 	char *directory_name = "DB";
 	// make directories
 	int mkdir_status = create_directories(directory_name);
-	if(mkdir_status != 0){
-
-		write(STDOUTFD, "Error while creating directory\n", sizeof("Error while creating directory\n"));
-		return 0;
-	}
-
-	write(STDOUTFD, "Directory created\n", sizeof("Directory created\n"));
+	if(mkdir_status != 0)
+		write(STDOUTFD, "directory exist or problem in creating directory\n", sizeof("directory exist or problem in creating directory\n"));
+	else
+		write(STDOUTFD, "Directory created\n", sizeof("Directory created\n"));
 	//creating socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -366,7 +363,7 @@ int main(int argn, char** args)
 							tokenizer(buff_read, "&", &tokens_num, input_tokens);
 							char res[20];
 							clear_buff(res, 20);
-							strcpy(res, "connection to switch is confirmed");
+							strcpy(res, "connection to switch is confirmed\n");
 							connected_to_server = 1;
 							connected_server_port = input_tokens[1];
 

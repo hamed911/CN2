@@ -3,8 +3,23 @@
 #include <netinet/in.h>
 #include "utilities.h"
 
-int main(int argn, char** args){
+void test(char * name){
+	if( file_exist(name) )
+		printf("file exist\n");;
+	char data[MAX_STR_SIZE];
+	clear_buff(data,MAX_STR_SIZE);
+	read_entire_file(name,data);
+	printf("data is:\n%s",data );
 
+}
+
+int main(int argn, char** args){
+	// test("./DB/Services/jafar.txt"); return;
+	if(argn<2){
+		printf("You didn't mentioned services\nThe correct pattern is:\t ./Service_provider.out user.txt xxxx.txt \t....\n");
+		return;
+	}
+	create_service_files(argn,args);
 	char input_buffer[MAX_STR_SIZE];
 	clear_buff(input_buffer, MAX_STR_SIZE);
 
@@ -36,67 +51,43 @@ int main(int argn, char** args){
 			else
 				write(STDOUTFD, "connecting successful\n", sizeof("connecting successful\n"));
 			//sending identity to server
+			char frame[MAX_STR_SIZE];
+			clear_buff(frame, MAX_STR_SIZE);
+			char data[MAX_STR_SIZE];
+			clear_buff(data, MAX_STR_SIZE);
+			char space[10]=" ";
+			concat(argn,args,space,data);
+			framing("01","0","ssssssssssssssss",data,"ssss",frame);
+			strcat(frame, "\0");
+			int bytes_written = write(fd, frame, strlength(frame));
+			if(bytes_written < 0)
+				write(STDOUTFD,"unable to write in server\n", sizeof("unable to write in server\n"));
+
+			//get response from server
+			char res_buff[MAX_STR_SIZE];
+			clear_buff(res_buff, MAX_STR_SIZE);
+			int read_status = read(fd, res_buff, MAX_STR_SIZE);
+
+			//show the response to client
+			write(STDOUTFD, res_buff, strlength(res_buff));
+			
 			char iden_buff[MAX_STR_SIZE];
 			clear_buff(iden_buff, MAX_STR_SIZE);
-
-			strcat(iden_buff, "client ");
-
-			strcat(iden_buff, " \0");
+			strcat(iden_buff, "01");//01 is for provider
 
 			while(1)
 			{
-				//read command
 				char in_buff[MAX_STR_SIZE];
 				clear_buff(in_buff, MAX_STR_SIZE);
-				int status = read(STDINFD, in_buff, MAX_STR_SIZE);
-				char request[MAX_STR_SIZE];
-				strcpy(request, iden_buff);
-				strcat(request, in_buff);
-
-				int tokens_num;
-				char temptkns[MAX_ARRAY_SIZE][MAX_STR_SIZE];
-				tokenizer(in_buff, " \n", &tokens_num, temptkns);
-
-				//send command for server
-				if( (mystrcmp(temptkns[0], "DC") < 0) && (mystrcmp(temptkns[0], "Exit") < 0) )
-				{
-					int bytes_written = write(fd, request, strlength(request));
-					if(bytes_written < 0)
-						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
-
-					//get response from server
-					char res_buff[MAX_STR_SIZE];
-					clear_buff(res_buff, MAX_STR_SIZE);
-					int read_status = read(fd, res_buff, MAX_STR_SIZE);
-
-					//show the response to client
-					write(STDOUTFD, res_buff, strlength(res_buff));
-				}
-				else if(mystrcmp(temptkns[0], "DC") == 0)
-				{
-					int bytes_written = write(fd, "DC", strlength("DC"));
-					if(bytes_written < 0)
-						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
-					break;
-				}
-				else if(mystrcmp(temptkns[0], "Exit") == 0)
-				{
-					int bytes_written = write(fd,"DC", strlength("DC"));
-					if(bytes_written < 0)
-						write(STDOUTFD,"Error on writing\n", sizeof("Error on writing\n"));
-					close(fd);
-					return 0;
-				}
+				int status = read(fd, in_buff, MAX_STR_SIZE);
+				status = write (fd,"provider recieved command\n",sizeof("provider recieved command\n"));
+				write(STDOUTFD,in_buff, strlength(res_buff));				
 			}
 			close(fd);
 		}
 		else if(mystrcmp(input_tokens[0], "Exit") == 0)
 		{
 			return 0;
-		}
-		else if( (mystrcmp(input_tokens[0], "Connect") < 0) && (mystrcmp(input_tokens[0], "Exit") < 0) )
-		{
-			write(STDOUTFD, "You Should Login First: Login AAA 111\n", sizeof("You Should Login First: Login AAA 111\n"));
 		}
 	}
 	return 0;

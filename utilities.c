@@ -1,7 +1,65 @@
 #include "utilities.h"
 
-char* crc(char* t){
-	return "$$$$$$";
+void concat(int argn, char** args,char* c,char* concated){
+	int i;
+	for(i=1; i< argn; i++){
+		strcat(concated,args[i]);
+		if(i!=argn-1){
+			strcat(concated,c);
+		}
+	}
+}
+
+void create_service_files(int argn, char** args){
+	create_directories("./DB");
+	create_directories("./DB/Services");
+	int i;
+	for(i=1; i<argn; i++){
+		printf("service %s created\n",args[i] );
+		char name[MAX_STR_SIZE];
+		clear_buff(name, MAX_STR_SIZE);
+		strcat(name, "./DB/Services/");
+		strcat(name,args[i]);
+		int fd= open_or_create_file(name);
+		close(fd);
+	}
+}
+
+
+int open_or_create_file(char* name){
+	return open(name, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH |S_IWUSR);
+}
+
+void replace_char(char* string,char old_char,char new_char ){
+	int i=0;
+	while(string[i]!='\0'){
+		if(string[i]==old_char)
+			string[i]=new_char;
+		i++;
+	}
+}
+
+bool has_access(char* user,char* service,char* mode){
+	char line [MAX_STR_SIZE];
+	clear_buff(line,MAX_STR_SIZE);
+	FILE* file = fopen("./DB/AC.txt","r");
+	while( fgets(line,MAX_STR_SIZE,file) != NULL){
+		replace_char(line,'\n','\0');
+		int input_tokens_num;
+		char input_tokens[MAX_ARRAY_SIZE][MAX_STR_SIZE];
+		tokenizer(line, " ", &input_tokens_num, input_tokens);
+		if(input_tokens_num!=3){
+			printf("Error in number of token in 'AC.txt' in: %s\n",line );
+			return false;
+		}
+		if(strcmp( input_tokens[0],user) ==0 && strcmp( input_tokens[1],service) ==0 && strcmp( input_tokens[2],mode) ==0){
+			printf("match hapend in: %s\n",line );
+			return true;
+		}
+	}
+
+	fclose(file);
+	return false;
 }
 /*
 void show_table_dst_port(dst_port table [MAX_ARRAY_SIZE],int index){
@@ -33,7 +91,7 @@ void delete_dst_port(dst_port table [MAX_ARRAY_SIZE],int index){
 	clear_buff(table[index].ip,MAX_STR_SIZE);
 }
 
-void insert_dst_port(dst_port table [MAX_ARRAY_SIZE] ,char* ip,int fd){
+void insert_dst_port(dst_port table [MAX_ARRAY_SIZE] ,char* ip,int fd){t
 	int i;
 	for(i=0; i<MAX_ARRAY_SIZE; i++)
 	{
@@ -45,6 +103,25 @@ void insert_dst_port(dst_port table [MAX_ARRAY_SIZE] ,char* ip,int fd){
 	}
 }
 */
+bool file_exist(char * fname){
+	if( access( fname, F_OK ) != -1 )
+		return true;
+	else 
+		return false;
+}
+
+void read_entire_file(char* name,char data [MAX_ARRAY_SIZE]){
+	printf("name is: %s\n",name );
+	FILE *f = fopen(name, "rb");
+	
+	fseek(f, 0, SEEK_END);
+	long fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	fread(data, fsize, 1, f);
+	fclose(f);
+	data[fsize] = 0;
+}
+
 void show_table_ip_fd(ip_fd table [MAX_ARRAY_SIZE],int index){
 	int i;
 	for(i=0; i<index; i++)
@@ -61,12 +138,31 @@ void clear_ip_fd(ip_fd table [MAX_ARRAY_SIZE]){
 	}
 }
 
+char* crc(char* t){
+	return "$$$$$$";
+}
+
 int search_ip_fd( ip_fd table [MAX_ARRAY_SIZE], char * ip){
 	int i;
 	for(i=0; i<MAX_ARRAY_SIZE; i++)
 		if(table[i].fd !=-1 && mystrcmp(table[i].ip,ip)==0)
 			return i;
 	return -1;
+}
+
+void initial_ip_fd(ip_fd table [MAX_ARRAY_SIZE]){
+	int i;
+	for (i=0; i<MAX_ARRAY_SIZE;i++){
+		strcpy( table[i].ip,"");
+		table[i].fd=-1;
+	}
+}
+
+void delete_all_ip_fd( ip_fd table [MAX_ARRAY_SIZE], int fd){
+	int i;
+	for(i=0; i<MAX_ARRAY_SIZE; i++)
+		if(table[i].fd ==fd)
+			table[i].fd=-1;
 }
 
 void delete_ip_fd( ip_fd table [MAX_ARRAY_SIZE],int index){
@@ -148,8 +244,7 @@ int read_ip_seed()
 
 int create_directories(char path_name[MAX_STR_SIZE])
 {
-	int mkdir_status = mkdir(path_name, S_IRUSR | S_IWUSR | S_IXUSR | S_IROTH | S_IWOTH | S_IXOTH);
-	return 0;
+	return mkdir(path_name, S_IRUSR | S_IWUSR | S_IXUSR | S_IROTH | S_IWOTH | S_IXOTH);
 }
 
 int strlength(char str[MAX_STR_SIZE])

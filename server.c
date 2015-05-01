@@ -6,18 +6,122 @@
 #include <errno.h>
 #include "utilities.h"
 
-int process_command(char command[MAX_STR_SIZE], char res[MAX_STR_SIZE], char* dirnm)
+void process_recieved_command(char buff_read[MAX_STR_SIZE],ip_fd* service_fd_table,int fd,char* final_response,char* port)
 {
-	return 1;
+	char response [MAX_STR_SIZE];
+	clear_buff(response,MAX_STR_SIZE);
+	int input_tokens_num;
+	char input_tokens[MAX_ARRAY_SIZE][MAX_STR_SIZE];
+	replace_char(buff_read,'\n','\0' );
+	tokenizer(buff_read, "&", &input_tokens_num, input_tokens);
+	int data_num;
+	char data[MAX_ARRAY_SIZE][MAX_STR_SIZE];
+	replace_char(buff_read,'\n','\0' );
+	printf("data is:%s\n",input_tokens[5] );
+	tokenizer(input_tokens[5], " ", &data_num,data );
+	if(strcmp( input_tokens[0],"00")==0){//from client
+		printf("client said!\n" );
+		if( strcmp(data[0],"Get") ==0 && strcmp(data[1],"List") ==0 && data_num==4){
+			int i;
+			for(i=0; i<MAX_ARRAY_SIZE; i++)
+				if(service_fd_table[i].fd!=-1){
+					strcat(response,service_fd_table[i].ip);
+					strcat(response," ");
+				}		
+		}else if( strcmp(data[0],"Request")==0 && data_num==4){
+			if( has_access(data[3],data[1],data[2]) ){
+				strcat(response,"You have Access to file\tfile is:\n");
+				char file_name [MAX_STR_SIZE];
+				clear_buff(file_name,MAX_STR_SIZE);
+				strcat(file_name,"./DB/Services/");
+				strcat(file_name,data[1]);
+				read_entire_file(file_name,response);
+				printf("in request\n");
+			}
+			else{
+				strcat(response,"Access denied! You doesn't have permission!\n");
+			}
+		}else if(strcmp(data[0],"Send")==0 && data_num==4){
+			if( !has_access(data[2],data[1],"Write") )
+				strcat(response,"Access denied! You doesn't have permission!\n");
+			else
+			{
+				replace_char(data[3],'^','\n');
+				char fname[MAX_STR_SIZE];
+				clear_buff(fname,MAX_STR_SIZE);
+				strcat(fname,"./DB/Services/");
+				strcat(fname,data[1]);
+				int fd = open_or_create_file(fname);
+				int status= write(fd,data[3],strlength(data[3]));
+				if(status==-1)
+					strcat(response,"error in writing in file\n");
+				else
+					strcat(response,"file wrote successfully!\n");
+				close(fd);
+
+			}
+
+		}else if(strcmp(data[0],"Append")==0 && data_num>=4){
+			if( !has_access(data[data_num-1],data[1],"Append") )
+				strcat(response,"Access denied! You doesn't have permission!\n");
+			else
+			{
+				char file_name [MAX_STR_SIZE];
+				clear_buff(file_name,MAX_STR_SIZE);
+				strcat(file_name,"./DB/Services/");
+				strcat(file_name,data[1]);
+				FILE* f_pointer = fopen(file_name, "a");
+				int i;
+				char file_data[MAX_STR_SIZE];
+				clear_buff(file_data,MAX_STR_SIZE);
+				for (i=2; i<data_num-1; i++){
+					strcat(file_data,data[i]);
+					strcat(file_data," ");
+				}
+				fputs( file_data,f_pointer);
+				fclose(f_pointer);
+				strcat(response,"data in ");
+				strcat(response,data[1]);
+				strcat(response," file Appended\n");
+			}
+		}else{
+			strcat(response,"Wrong command\n");
+		}
+		
+	}else if(strcmp( input_tokens[0],"01")==0){//provider
+		printf("provider said!\n" );
+		
+		int i;
+		for(i=0; i<data_num; i++){
+			insert_ip_fd( service_fd_table ,data[i], fd);
+		}
+		show_table_ip_fd(service_fd_table,4);
+	}
+	framing("11",input_tokens[2],"0",response,port,final_response);
+}
+
+void test(ip_fd service_fd_table[MAX_ARRAY_SIZE]){
+	char response[MAX_STR_SIZE];
+	process_recieved_command("00&0000000000000000&0000000000000001&$$$$&1024&Append kaftar.txt jafariiiiiiiiiiiiiiiiiiiiiiiiiii hamed&$$$$$$&cccc",
+			service_fd_table,2,response,"1000");
+	printf("response is\n%s\n",response );
+	
+
 }
 
 int main(int argn, char** args)
 {
+	ip_fd ip_fd_table[MAX_ARRAY_SIZE],service_fd_table[MAX_ARRAY_SIZE];
+	initial_ip_fd(ip_fd_table);
+	initial_ip_fd(service_fd_table);
+	// test(service_fd_table);return;
 	if(argn!=2){
 		print("use this format: /Server port\n");
 		return 0;
 	}
-
+	// ip_fd ip_fd_table[MAX_ARRAY_SIZE],service_fd_table[MAX_ARRAY_SIZE];
+	// initial_ip_fd(ip_fd_table);
+	// initial_ip_fd(service_fd_table);
 	change_ip_seed(0);
 	int port_number = atoi(args[1]);//to be server
 	int port_no;//to be client
@@ -25,13 +129,10 @@ int main(int argn, char** args)
 	char *directory_name = "DB";
 	// make directories
 	int mkdir_status = create_directories(directory_name);
-	if(mkdir_status != 0){
-
-		write(STDOUTFD, "Error while creating directory\n", sizeof("Error while creating directory\n"));
-		return 0;
-	}
-
-	write(STDOUTFD, "Directory created\n", sizeof("Directory created\n"));
+	if(mkdir_status != 0)
+		write(STDOUTFD, "directory exist or problem in creating directory\n", sizeof("directory exist or problem in creating directory\n"));
+	else
+		write(STDOUTFD, "Directory created\n", sizeof("Directory created\n"));
 	//creating socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	int client_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -165,18 +266,15 @@ int main(int argn, char** args)
 					char buff_read [MAX_STR_SIZE], response_buff[MAX_STR_SIZE];
 					clear_buff(buff_read, MAX_STR_SIZE);
 					clear_buff(response_buff, MAX_STR_SIZE);
-					strcpy(response_buff, "Server mige OKKe");
+					strcpy(response_buff, "Server mige OKKe\n");
 
 					n = read(it_fd, buff_read, MAX_STR_SIZE-1);
-
-					printf("\nserver ino khunde\n");
-					print(buff_read);
-
 					if(n == 0)
 					{
 						close(it_fd);
 						FD_CLR(it_fd, &read_fdset);
 						write(STDOUTFD, "Removing One Client_fd\n", sizeof("Removing One Client_fd\n"));
+						delete_all_ip_fd( service_fd_table, it_fd);
 					}
 					else if(n < 0)
 					{
@@ -187,11 +285,14 @@ int main(int argn, char** args)
 					{
 						if(mystrcmp(buff_read, "DC") < 0)
 						{
-							if(process_command(buff_read, response_buff, directory_name) < 0)
-							{
-								int st = write(it_fd, "Invalid command\n", sizeof("Invalid command\n"));
-								if(st < 0) write(STDOUTFD, "Error on writing\n", sizeof("Error on writing\n"));
-							}
+							printf("recieved command is:\n%s\n",buff_read);
+							process_recieved_command(buff_read,service_fd_table,it_fd,response_buff,args[1]);
+
+							// if(process_command(buff_read, response_buff, directory_name) < 0)
+							// {
+							// 	int st = write(it_fd, "Invalid command\n", sizeof("Invalid command\n"));
+							// 	if(st < 0) write(STDOUTFD, "Error on writing\n", sizeof("Error on writing\n"));
+							// }
 
 							print(response_buff);
 
@@ -200,8 +301,7 @@ int main(int argn, char** args)
 						}
 						else if(mystrcmp(buff_read, "DC") == 0)
 						{
-							write(it_fd, "Disconnecting in Progress ...\n",
-									sizeof("Disconnecting in Progress ...\n"));
+							write(it_fd, "Disconnecting in Progress ...\n",sizeof("Disconnecting in Progress ...\n"));
 							close(it_fd);
 							FD_CLR(it_fd, &read_fdset);
 							write(STDOUTFD, "Removing One Client_fd\n", sizeof("Removing One Client_fd\n"));
